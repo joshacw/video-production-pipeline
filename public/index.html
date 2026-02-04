@@ -492,9 +492,20 @@
               <button class="btn-secondary" onclick="downloadSpec()">
                 📥 Download JSON
               </button>
-              <button class="btn-tertiary" onclick="showRenderInstructions()">
-                🎬 How to Render
+              <button class="btn-tertiary" onclick="renderWithLambda()" id="lambdaBtn">
+                🚀 Render with Lambda
               </button>
+              <button class="btn-tertiary" onclick="showRenderInstructions()">
+                ℹ️ Local Render
+              </button>
+            </div>
+
+            <div id="renderProgress" style="display: none; margin-top: 16px; padding: 12px; background: #eff6ff; border-radius: 8px;">
+              <p style="margin: 0; color: #1e40af; font-weight: 600;">🎬 Rendering video...</p>
+              <div style="background: white; height: 8px; border-radius: 4px; margin-top: 8px; overflow: hidden;">
+                <div id="progressBar" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 100%; width: 0%; transition: width 0.3s;"></div>
+              </div>
+              <p id="progressText" style="margin-top: 8px; font-size: 14px; color: #6b7280;">0% complete</p>
             </div>
 
             <div id="renderInstructions" class="instructions" style="display: none;">
@@ -555,6 +566,91 @@
         instructions.style.display = 'block';
       } else {
         instructions.style.display = 'none';
+      }
+    }
+
+    async function renderWithLambda() {
+      if (!window.currentVideoSpec) {
+        alert('No video specification available');
+        return;
+      }
+
+      const lambdaBtn = document.getElementById('lambdaBtn');
+      const progressDiv = document.getElementById('renderProgress');
+      const progressBar = document.getElementById('progressBar');
+      const progressText = document.getElementById('progressText');
+
+      lambdaBtn.disabled = true;
+      lambdaBtn.textContent = '🚀 Starting render...';
+      progressDiv.style.display = 'block';
+
+      try {
+        // Start render
+        const startResponse = await fetch('/api/lambda-render', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            videoSpec: window.currentVideoSpec,
+            composition: 'ExplainerVideo'
+          }),
+        });
+
+        const startData = await startResponse.json();
+
+        if (!startResponse.ok) {
+          throw new Error(startData.error || 'Failed to start render');
+        }
+
+        // Poll for progress
+        const { renderId, bucketName } = startData;
+        let done = false;
+
+        while (!done) {
+          await new Promise(resolve => setTimeout(resolve, 3000)); // Poll every 3 seconds
+
+          const progressResponse = await fetch(
+            `/api/lambda-render?renderId=${renderId}&bucketName=${bucketName}`
+          );
+          const progressData = await progressResponse.json();
+
+          if (progressData.success) {
+            const progress = progressData.progress;
+            const percent = Math.round(progress.overallProgress * 100);
+
+            progressBar.style.width = percent + '%';
+            progressText.textContent = `${percent}% complete (${progress.renderedFrames || 0}/${progress.totalFrames || 0} frames)`;
+
+            if (progress.done && progress.outputFile) {
+              done = true;
+              progressDiv.innerHTML = `
+                <p style="margin: 0; color: #059669; font-weight: 600;">✅ Render complete!</p>
+                <a href="${progress.outputFile}" target="_blank" style="display: inline-block; margin-top: 12px; padding: 10px 20px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">
+                  📥 Download Video
+                </a>
+                <p style="margin-top: 12px; font-size: 14px; color: #6b7280;">Cost: $${progress.costs?.accruedSoFar?.toFixed(3) || '0.000'}</p>
+              `;
+              lambdaBtn.textContent = '✅ Rendered!';
+            }
+          }
+        }
+      } catch (error) {
+        progressDiv.innerHTML = `
+          <p style="margin: 0; color: #dc2626; font-weight: 600;">❌ Render failed</p>
+          <p style="margin-top: 8px; font-size: 14px; color: #6b7280;">${error.message}</p>
+          ${error.message.includes('AWS credentials') ? `
+            <p style="margin-top: 12px; font-size: 14px; color: #6b7280;">
+              Configure AWS credentials in Vercel:
+              <br>• AWS_ACCESS_KEY_ID
+              <br>• AWS_SECRET_ACCESS_KEY
+              <br>• AWS_REGION
+              <br>• REMOTION_SITE_NAME
+            </p>
+          ` : ''}
+        `;
+        lambdaBtn.textContent = '🚀 Render with Lambda';
+        lambdaBtn.disabled = false;
       }
     }
   </script>
