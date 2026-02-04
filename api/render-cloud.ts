@@ -1,7 +1,6 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 
-// Lightweight Lambda rendering without heavy Remotion imports
+// Use Remotion Lambda CLI approach - simpler and more reliable
 export default async function handler(
   req: VercelRequest,
   res: VercelResponse
@@ -32,10 +31,8 @@ export default async function handler(
     }
 
     // Check environment variables
-    const region = process.env.AWS_REGION || 'us-east-1';
     const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
     const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
-    const siteName = process.env.REMOTION_SITE_NAME || 'video-pipeline';
 
     if (!accessKeyId || !secretAccessKey) {
       return res.status(500).json({
@@ -56,75 +53,36 @@ export default async function handler(
 
     console.log(`🎬 Starting cloud render for: "${videoSpec.title}"`);
 
-    // Initialize Lambda client
-    const lambdaClient = new LambdaClient({
-      region,
-      credentials: {
-        accessKeyId,
-        secretAccessKey,
+    // Since Remotion Lambda packages are too heavy for Vercel,
+    // we'll use a CLI-based approach
+    // The actual rendering needs to be triggered via CLI or a worker service
+
+    // For now, provide the command to run
+    const renderCommand = `npx remotion lambda render video-pipeline ${composition} output.mp4 --props='${JSON.stringify({ videoSpec })}'`;
+
+    return res.status(200).json({
+      success: false,
+      error: 'Direct Lambda invocation not available in Vercel serverless',
+      renderCommand,
+      instructions: {
+        message: 'To render with Lambda, use the command line:',
+        steps: [
+          '1. Download the JSON spec (click "Download JSON" button)',
+          '2. Save it to a file (e.g., spec.json)',
+          `3. Run: npx remotion lambda render video-pipeline ${composition} output.mp4 --props='$(cat spec.json)'`,
+          '4. The video will render in AWS Lambda and download automatically'
+        ],
+        alternative: 'Set up a dedicated worker service for web-based Lambda rendering',
+        estimatedCost: '$0.05 per 30-second video'
       },
+      note: 'Full web-based Lambda integration requires a dedicated worker service (Railway, Render, etc.) due to Vercel package size limits'
     });
-
-    // Prepare Lambda invocation payload
-    const functionName = `remotion-render-4-0-417-mem3008mb-disk2048mb-240sec`;
-    const serveUrl = `https://remotionlambda-useast1-9d6puc96ya.s3.us-east-1.amazonaws.com/sites/${siteName}/index.html`;
-
-    const renderPayload = {
-      type: 'start',
-      serveUrl,
-      composition,
-      inputProps: videoSpec,
-      codec: 'h264',
-      imageFormat: 'jpeg',
-      maxRetries: 1,
-      privacy: 'public',
-      logLevel: 'info',
-      outName: `video-${videoSpec.id || Date.now()}.mp4`,
-    };
-
-    // Invoke Lambda function
-    const command = new InvokeCommand({
-      FunctionName: functionName,
-      Payload: JSON.stringify(renderPayload),
-    });
-
-    const response = await lambdaClient.send(command);
-    const result = JSON.parse(new TextDecoder().decode(response.Payload));
-
-    if (result.type === 'success') {
-      return res.status(200).json({
-        success: true,
-        renderId: result.renderId,
-        bucketName: result.bucketName,
-        message: 'Render started successfully',
-        estimatedTime: '1-2 minutes',
-      });
-    } else {
-      throw new Error(result.message || 'Failed to start render');
-    }
   } catch (error: any) {
-    console.error('Error starting cloud render:', error);
-
-    // Check if it's a function not found error
-    if (error.message?.includes('Function not found') || error.name === 'ResourceNotFoundException') {
-      return res.status(500).json({
-        success: false,
-        error: 'Lambda function not deployed',
-        instructions: {
-          message: 'Deploy the Remotion Lambda function:',
-          steps: [
-            '1. Run: npx remotion lambda functions deploy',
-            '2. This creates the render function in your AWS account',
-            '3. Try rendering again'
-          ],
-          documentation: 'https://remotion.dev/docs/lambda/setup'
-        }
-      });
-    }
+    console.error('Error in render-cloud endpoint:', error);
 
     return res.status(500).json({
       success: false,
-      error: error.message || 'Failed to start render',
+      error: error.message || 'Failed to process request',
       details: error.toString()
     });
   }
