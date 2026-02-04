@@ -585,8 +585,8 @@
       progressDiv.style.display = 'block';
 
       try {
-        // Start render
-        const startResponse = await fetch('/api/lambda-render', {
+        // Start render with new cloud endpoint
+        const startResponse = await fetch('/api/render-cloud', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
