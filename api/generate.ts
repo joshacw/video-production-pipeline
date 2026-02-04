@@ -1,29 +1,4 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { VideoPipeline } from '../src/pipeline/videoPipeline';
-import { VideoRequestSchema, BrandConfig } from '../src/types';
-
-// Initialize pipeline with environment variables
-const pipeline = new VideoPipeline({
-  openaiApiKey: process.env.OPENAI_API_KEY!,
-  unsplashApiKey: process.env.UNSPLASH_API_KEY,
-  pexelsApiKey: process.env.PEXELS_API_KEY,
-});
-
-// Default brand config
-const defaultBrand: BrandConfig = {
-  name: 'Default Brand',
-  colors: {
-    primary: '#3B82F6',
-    secondary: '#8B5CF6',
-    accent: '#EC4899',
-    background: '#1F2937',
-    text: '#F9FAFB',
-  },
-  fonts: {
-    primary: 'Inter',
-    secondary: 'Poppins',
-  },
-};
 
 export default async function handler(
   req: VercelRequest,
@@ -55,19 +30,49 @@ export default async function handler(
       return res.status(400).json({ error: 'Request body is required' });
     }
 
-    // Validate request
-    const validatedRequest = VideoRequestSchema.parse(request);
-    const brand = branding || defaultBrand;
+    console.log(`📹 Generating video for: "${request.topic}"`);
 
-    console.log(`📹 Generating video for: "${validatedRequest.topic}"`);
-
-    // Generate video specification
-    const videoSpec = await pipeline.generateVideo(validatedRequest, brand);
+    // TODO: Implement full pipeline - for now return mock data
+    const mockVideoSpec = {
+      id: `video-${Date.now()}`,
+      title: `Video: ${request.topic}`,
+      script: {
+        title: request.topic,
+        hook: "Attention-grabbing opening line about " + request.topic,
+        content: [
+          "Key point 1 about " + request.topic,
+          "Key point 2 with more details",
+          "Key point 3 wrapping up"
+        ],
+        cta: "Like, subscribe, and follow for more!",
+        estimatedDuration: request.duration || 30
+      },
+      assets: {
+        images: [],
+        videos: [],
+        music: null
+      },
+      timing: {
+        intro: 3,
+        content: (request.duration || 30) - 6,
+        outro: 3
+      },
+      platform: request.platform,
+      style: request.style,
+      tone: request.tone,
+      branding: branding || {
+        name: 'Your Brand',
+        colors: {
+          primary: '#3B82F6',
+          secondary: '#8B5CF6'
+        }
+      }
+    };
 
     return res.status(200).json({
       success: true,
-      videoSpec,
-      message: 'Video specification generated successfully',
+      videoSpec: mockVideoSpec,
+      message: 'Video specification generated successfully (mock data - full pipeline coming soon)',
     });
   } catch (error: any) {
     console.error('Error generating video:', error);
