@@ -3,6 +3,7 @@ import { Composition } from 'remotion';
 import { ExplainerVideo } from './compositions/ExplainerVideo';
 import { ProductShowcase } from './compositions/ProductShowcase';
 import { SocialPost } from './compositions/SocialPost';
+import { SimpleVideo, SimpleVideoProps } from './compositions/SimpleVideo';
 import { VideoSpec, VideoSpecSchema } from '../types';
 
 export const RemotionRoot: React.FC = () => {
@@ -72,6 +73,40 @@ export const RemotionRoot: React.FC = () => {
         height={1080}
         schema={VideoSpecSchema}
         defaultProps={defaultVideoSpec}
+      />
+
+      <Composition
+        id="SimpleVideo"
+        component={SimpleVideo}
+        durationInFrames={600} // 20 seconds at 30fps
+        fps={30}
+        width={1080}
+        height={1920}
+        defaultProps={{
+          script: {
+            title: "Welcome!",
+            hook: "Let's get started",
+            content: ["Point 1", "Point 2", "Point 3"],
+            cta: "Subscribe for more!"
+          },
+          branding: {
+            name: "Your Brand",
+            colors: {
+              primary: "#3b82f6",
+              secondary: "#8b5cf6",
+              background: "#1F2937",
+              text: "#F9FAFB"
+            },
+            fonts: {
+              primary: "Inter"
+            }
+          },
+          timing: {
+            intro: 3,
+            content: 14,
+            outro: 3
+          }
+        }}
       />
     </>
   );
