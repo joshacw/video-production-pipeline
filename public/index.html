@@ -178,6 +178,52 @@
       color: white;
       text-decoration: underline;
     }
+
+    .action-buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .action-buttons button {
+      flex: 1;
+      padding: 12px;
+      font-size: 16px;
+    }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+
+    .btn-tertiary {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    }
+
+    .instructions {
+      background: #f3f4f6;
+      padding: 16px;
+      border-radius: 8px;
+      margin-top: 16px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .instructions h4 {
+      margin-bottom: 8px;
+      color: #374151;
+    }
+
+    .instructions ol {
+      margin-left: 20px;
+      color: #6b7280;
+    }
+
+    .instructions code {
+      background: white;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 13px;
+    }
   </style>
 </head>
 <body>
@@ -338,11 +384,42 @@
         const responseData = await response.json();
 
         if (response.ok) {
+          // Store videoSpec for later use
+          window.currentVideoSpec = responseData.videoSpec;
+
           result.className = 'result success';
           result.innerHTML = `
             <h3>✅ Video Specification Generated!</h3>
-            <p>Your video specification has been created successfully.</p>
-            <pre>${JSON.stringify(responseData.videoSpec, null, 2)}</pre>
+            <p>${responseData.message}</p>
+
+            <div class="action-buttons">
+              <button class="btn-secondary" onclick="downloadSpec()">
+                📥 Download JSON
+              </button>
+              <button class="btn-tertiary" onclick="showRenderInstructions()">
+                🎬 How to Render
+              </button>
+            </div>
+
+            <div id="renderInstructions" class="instructions" style="display: none;">
+              <h4>🎬 Render Your Video</h4>
+              <p><strong>Option 1: Local Rendering (Recommended)</strong></p>
+              <ol>
+                <li>Download the JSON spec above</li>
+                <li>Clone the repo: <code>git clone https://github.com/joshacw/video-production-pipeline</code></li>
+                <li>Install: <code>npm install</code></li>
+                <li>Save your JSON spec to a file</li>
+                <li>Start Remotion Studio: <code>npm run dev</code></li>
+                <li>Load your spec in the studio and click "Render"</li>
+              </ol>
+              <p><strong>Option 2: Remotion Lambda (Cloud)</strong></p>
+              <p>Deploy to AWS Lambda for scalable cloud rendering. See <a href="https://remotion.dev/docs/lambda" target="_blank">Remotion Lambda docs</a></p>
+            </div>
+
+            <details style="margin-top: 16px;">
+              <summary style="cursor: pointer; font-weight: 600; padding: 8px 0;">View JSON Specification</summary>
+              <pre>${JSON.stringify(responseData.videoSpec, null, 2)}</pre>
+            </details>
           `;
         } else {
           throw new Error(responseData.error || 'Failed to generate video');
@@ -359,6 +436,31 @@
         result.style.display = 'block';
       }
     });
+
+    function downloadSpec() {
+      if (!window.currentVideoSpec) {
+        alert('No video specification available');
+        return;
+      }
+
+      const dataStr = JSON.stringify(window.currentVideoSpec, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `video-spec-${window.currentVideoSpec.id || Date.now()}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function showRenderInstructions() {
+      const instructions = document.getElementById('renderInstructions');
+      if (instructions.style.display === 'none') {
+        instructions.style.display = 'block';
+      } else {
+        instructions.style.display = 'none';
+      }
+    }
   </script>
 </body>
 </html>
