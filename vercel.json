@@ -2,14 +2,8 @@
   "version": 2,
   "name": "video-production-pipeline",
   "buildCommand": "echo 'No build needed'",
-  "outputDirectory": ".",
+  "outputDirectory": "public",
   "installCommand": "npm install",
-  "rewrites": [
-    {
-      "source": "/",
-      "destination": "/api/index"
-    }
-  ],
   "env": {
     "NODE_ENV": "production"
   },

@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Video Production Pipeline</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      color: white;
+      margin-bottom: 40px;
+    }
+
+    .header h1 {
+      font-size: 48px;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      font-size: 18px;
+      opacity: 0.9;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .form-group {
+      margin-bottom: 24px;
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    button {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .result {
+      margin-top: 30px;
+      padding: 20px;
+      border-radius: 8px;
+      display: none;
+    }
+
+    .result.success {
+      background: #d1fae5;
+      border: 2px solid #10b981;
+      color: #065f46;
+    }
+
+    .result.error {
+      background: #fee2e2;
+      border: 2px solid #ef4444;
+      color: #991b1b;
+    }
+
+    .result h3 {
+      margin-bottom: 12px;
+      font-size: 18px;
+    }
+
+    .result pre {
+      background: rgba(0, 0, 0, 0.05);
+      padding: 12px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .spinner {
+      border: 4px solid #e5e7eb;
+      border-top: 4px solid #667eea;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 12px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .api-link {
+      text-align: center;
+      margin-top: 20px;
+      color: white;
+      font-size: 14px;
+    }
+
+    .api-link a {
+      color: white;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎬 Video Production Pipeline</h1>
+      <p>Generate professional videos with AI in seconds</p>
+    </div>
+
+    <div class="card">
+      <form id="videoForm">
+        <div class="form-group">
+          <label for="topic">Video Topic *</label>
+          <input
+            type="text"
+            id="topic"
+            name="topic"
+            placeholder="e.g., AI tips for developers"
+            required
+          >
+        </div>
+
+        <div class="row">
+          <div class="form-group">
+            <label for="duration">Duration (seconds) *</label>
+            <input
+              type="number"
+              id="duration"
+              name="duration"
+              value="30"
+              min="15"
+              max="120"
+              required
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="platform">Platform *</label>
+            <select id="platform" name="platform" required>
+              <option value="youtube-shorts">YouTube Shorts</option>
+              <option value="instagram-reels">Instagram Reels</option>
+              <option value="tiktok">TikTok</option>
+              <option value="youtube">YouTube</option>
+              <option value="linkedin">LinkedIn</option>
+              <option value="twitter">Twitter/X</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="form-group">
+            <label for="style">Style</label>
+            <select id="style" name="style">
+              <option value="modern">Modern</option>
+              <option value="energetic">Energetic</option>
+              <option value="corporate">Corporate</option>
+              <option value="minimal">Minimal</option>
+              <option value="playful">Playful</option>
+              <option value="elegant">Elegant</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="tone">Tone</label>
+            <select id="tone" name="tone">
+              <option value="professional">Professional</option>
+              <option value="casual">Casual</option>
+              <option value="energetic">Energetic</option>
+              <option value="educational">Educational</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="brandName">Brand Name (optional)</label>
+          <input
+            type="text"
+            id="brandName"
+            name="brandName"
+            placeholder="Your Brand"
+          >
+        </div>
+
+        <button type="submit" id="submitBtn">
+          Generate Video Specification
+        </button>
+      </form>
+
+      <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Generating your video specification...</p>
+      </div>
+
+      <div class="result" id="result"></div>
+    </div>
+
+    <div class="api-link">
+      <a href="/api/index">API Documentation</a>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('videoForm');
+    const loading = document.getElementById('loading');
+    const result = document.getElementById('result');
+    const submitBtn = document.getElementById('submitBtn');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      // Get form data
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData);
+
+      // Prepare request payload
+      const payload = {
+        request: {
+          topic: data.topic,
+          duration: parseInt(data.duration),
+          platform: data.platform,
+          style: data.style,
+          tone: data.tone,
+        }
+      };
+
+      // Add branding if provided
+      if (data.brandName) {
+        payload.branding = {
+          name: data.brandName,
+          colors: {
+            primary: '#3B82F6',
+            secondary: '#8B5CF6',
+            accent: '#EC4899',
+            background: '#1F2937',
+            text: '#F9FAFB',
+          },
+          fonts: {
+            primary: 'Inter',
+            secondary: 'Poppins',
+          },
+        };
+      }
+
+      // Show loading state
+      submitBtn.disabled = true;
+      loading.style.display = 'block';
+      result.style.display = 'none';
+
+      try {
+        const response = await fetch('/api/generate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+
+        const responseData = await response.json();
+
+        if (response.ok) {
+          result.className = 'result success';
+          result.innerHTML = `
+            <h3>✅ Video Specification Generated!</h3>
+            <p>Your video specification has been created successfully.</p>
+            <pre>${JSON.stringify(responseData.videoSpec, null, 2)}</pre>
+          `;
+        } else {
+          throw new Error(responseData.error || 'Failed to generate video');
+        }
+      } catch (error) {
+        result.className = 'result error';
+        result.innerHTML = `
+          <h3>❌ Error</h3>
+          <p>${error.message}</p>
+        `;
+      } finally {
+        submitBtn.disabled = false;
+        loading.style.display = 'none';
+        result.style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>
