@@ -4,7 +4,7 @@
   "description": "Automated video production pipeline using Remotion",
   "scripts": {
     "dev": "remotion studio",
-    "build": "remotion render",
+    "build": "echo 'No build needed for API endpoints'",
     "preview": "remotion preview",
     "server": "tsx watch src/api/server.ts",
     "worker": "tsx watch src/queue/worker.ts",
