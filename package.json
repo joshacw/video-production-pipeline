@@ -1,0 +1,39 @@
+{
+  "name": "video-production-pipeline",
+  "version": "1.0.0",
+  "description": "Automated video production pipeline using Remotion",
+  "scripts": {
+    "dev": "remotion studio",
+    "build": "remotion render",
+    "preview": "remotion preview",
+    "server": "tsx watch src/api/server.ts",
+    "worker": "tsx watch src/queue/worker.ts",
+    "demo": "tsx src/examples/demo.ts"
+  },
+  "dependencies": {
+    "@remotion/bundler": "^4.0.0",
+    "@remotion/cli": "^4.0.0",
+    "@remotion/google-fonts": "^4.0.0",
+    "@remotion/lottie": "^4.0.0",
+    "@remotion/shapes": "^4.0.0",
+    "@remotion/three": "^4.0.0",
+    "@supabase/supabase-js": "^2.39.0",
+    "@vercel/node": "^3.0.0",
+    "axios": "^1.6.0",
+    "bull": "^4.12.0",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "openai": "^4.28.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "remotion": "^4.0.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.11.0",
+    "@types/react": "^18.2.48",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3"
+  }
+}
